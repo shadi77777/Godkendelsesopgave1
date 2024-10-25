@@ -1,15 +1,35 @@
-import React from 'react';
-import { NavigationContainer } from "@react-navigation/native";
-import BottomNavigation from './navigation/BottomNavigation';
-import { initializeFirebase } from './config/firebase'; // Firebase initialization
+import React, { useEffect } from 'react';
+import { NavigationContainer } from '@react-navigation/native';
+import { createStackNavigator } from '@react-navigation/stack';
+import BottomNavigation from './navigation/BottomNavigation'; // Importér din BottomNavigation
+import ProfileScreen from './screens/ProfileScreen'; // Importér ProfileScreen
+import { initializeFirebase } from './config/firebase'; // Importér din Firebase-initialiseringsfunktion
 
-// Initialiser Firebase
-initializeFirebase();
+const Stack = createStackNavigator();
 
-export default function App() {
+const AppNavigator = () => {
+  // Brug en useEffect til at initialisere Firebase kun én gang ved opstart
+  useEffect(() => {
+    initializeFirebase();
+  }, []); // [] betyder, at dette kun kører én gang ved første render
+
   return (
     <NavigationContainer>
-      <BottomNavigation />
+      <Stack.Navigator>
+        {/* Bundnavigationen som hovedskærmen */}
+        <Stack.Screen 
+          name="HomeTabs" 
+          component={BottomNavigation} 
+          options={{ headerShown: false }} // Skjul headeren for bundnavigationen
+        />
+        {/* Tilføj ProfileScreen til stacken */}
+        <Stack.Screen 
+          name="Profile" 
+          component={ProfileScreen} 
+        />
+      </Stack.Navigator>
     </NavigationContainer>
   );
-}
+};
+
+export default AppNavigator;

@@ -19,18 +19,22 @@ export const initializeFirebase = () => {
   // Tjek om Firebase allerede er initialiseret
   if (!getApps().length) {
     const app = initializeApp(firebaseConfig);
+    console.log("Firebase initialiseres nu.");
 
     // Initialiser Firebase Auth med AsyncStorage
     auth = initializeAuth(app, {
       persistence: getReactNativePersistence(ReactNativeAsyncStorage),
     });
+    console.log("Auth initialiseret:", auth);
 
     // Initialiser Firestore
     db = getFirestore(app);
+    console.log("Firestore initialiseret:", db);
   } else {
     const app = getApps()[0];
     auth = getAuth(app);
     db = getFirestore(app);
+    console.log("Firebase var allerede initialiseret.");
   }
 };
 

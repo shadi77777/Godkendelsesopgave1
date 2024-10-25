@@ -1,46 +1,115 @@
-import React from 'react';
-import { View, Text, Switch, StyleSheet } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import {
+  StyleSheet, Text, View, Switch, TextInput,
+  TouchableWithoutFeedback, Keyboard, ScrollView
+} from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const SettingsScreen = () => {
-  const [isEnabled, setIsEnabled] = React.useState(false);
+  const [notificationsEnabled, setNotificationsEnabled] = useState(false);
+  const [dailyGoal, setDailyGoal] = useState('2000'); // Standard dagligt mål i ml
 
-  const toggleSwitch = () => setIsEnabled(previousState => !previousState);
+  // Hent indstillinger fra AsyncStorage
+  useEffect(() => {
+    const loadSettings = async () => {
+      try {
+        const notificationsValue = await AsyncStorage.getItem('notificationsEnabled');
+        if (notificationsValue !== null) {
+          setNotificationsEnabled(JSON.parse(notificationsValue));
+        }
+
+        const dailyGoalValue = await AsyncStorage.getItem('dailyGoal');
+        if (dailyGoalValue !== null) {
+          setDailyGoal(dailyGoalValue);
+        }
+      } catch (error) {
+        console.error('Fejl ved indlæsning af indstillinger:', error);
+      }
+    };
+
+    loadSettings();
+  }, []);
+
+  const toggleNotifications = async () => {
+    const newValue = !notificationsEnabled;
+    setNotificationsEnabled(newValue);
+    try {
+      await AsyncStorage.setItem('notificationsEnabled', JSON.stringify(newValue));
+      // Tilføj her logik til at aktivere/deaktivere notifikationer
+    } catch (error) {
+      console.error('Fejl ved lagring af notifikationsindstilling:', error);
+    }
+  };
+
+  const handleDailyGoalChange = async (value) => {
+    setDailyGoal(value);
+    try {
+      await AsyncStorage.setItem('dailyGoal', value);
+      // Tilføj her logik til at opdatere det daglige mål i appen
+    } catch (error) {
+      console.error('Fejl ved lagring af dagligt mål:', error);
+    }
+  };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Settings</Text>
-      <View style={styles.settingItem}>
-        <Text style={styles.settingText}>Enable Notifications</Text>
-        <Switch
-          trackColor={{ false: '#767577', true: '#81b0ff' }}
-          thumbColor={isEnabled ? '#f5dd4b' : '#f4f3f4'}
-          onValueChange={toggleSwitch}
-          value={isEnabled}
-        />
-      </View>
-    </View>
+    <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
+      <ScrollView contentContainerStyle={styles.container}>
+        <Text style={styles.header}>Indstillinger</Text>
+
+        <View style={styles.settingItem}>
+          <Text style={styles.settingText}>Aktiver notifikationer</Text>
+          <Switch
+            onValueChange={toggleNotifications}
+            value={notificationsEnabled}
+          />
+        </View>
+
+        <View style={styles.settingItem}>
+          <Text style={styles.settingText}>Dagligt vandindtagsmål (ml)</Text>
+          <TextInput
+            style={styles.input}
+            keyboardType="numeric"
+            value={dailyGoal}
+            onChangeText={handleDailyGoalChange}
+          />
+        </View>
+      </ScrollView>
+    </TouchableWithoutFeedback>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
+    flexGrow: 1,
+    backgroundColor: '#f0f8ff',
     padding: 20,
-    backgroundColor: '#fff',
   },
-  title: {
-    fontSize: 24,
+  header: {
+    fontSize: 28,
     fontWeight: 'bold',
-    marginBottom: 20,
+    marginBottom: 25,
+    color: '#1e90ff',
+    textAlign: 'center',
   },
   settingItem: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 15,
+    justifyContent: 'space-between',
+    marginVertical: 15,
   },
   settingText: {
-    fontSize: 18,
+    fontSize: 16,
+    flex: 1,
+  },
+  input: {
+    height: 40,
+    borderColor: '#ccc',
+    borderWidth: 1,
+    width: 100,
+    paddingHorizontal: 10,
+    borderRadius: 5,
+    textAlign: 'center',
+    backgroundColor: '#fff',
   },
 });
 
